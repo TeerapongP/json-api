@@ -1,45 +1,24 @@
-const jsonServer = require('json-server');
-const clone = require('clone');
-const cors = require('cors');
-const data = require('./db.json');
 const express = require('express');
-const isProductionEnv = process.env.NODE_ENV === 'production';
-const port = process.env.PORT || 8000;
-
-const createServer = () => {
-    const server = jsonServer.create();
-    const router = jsonServer.router(isProductionEnv ? clone(data) : 'db.json', {
-        _isFake: isProductionEnv,
-    });
-    const middlewares = jsonServer.defaults();
-
-    server.use(cors());
-    server.use(middlewares);
-    server.use(express.json()); // Parse JSON request bodies
-
-    server.use((req, res, next) => {
-        if (req.path !== '/') {
-            router.db.setState(clone(data));
-        }
-        next();
-    });
-
-    server.use(router);
-
-    return server;
-};
-
-function searchByTags(keyword) {
-    const searchResults = data.filter(trip => trip.tags.includes(keyword));
-    return searchResults;
-}
+const cors = require('cors');
+const data = require('./db.json'); // Assuming the JSON data is stored in a file called 'db.json'
 
 const app = express();
+const port = process.env.PORT || 8000;
+
+function searchByTags(keyword) {
+    const searchResults = data.trips.filter(trip => trip.tags.includes(keyword));
+    return searchResults;
+}
+app.use(cors());
+app.use(express.json()); // Parse JSON request bodies
 
 // Search endpoint with GET request and query parameter
-app.get('/search', (req, res) => {
-    const { keyword } = req.query;
-    console.log('Received keyword:', keyword); // Optional: Log the received keyword in the server console
+app.post('/search', (req, res) => {
+    const { keyword } = req.body;
+    if (!keyword) {
+        return res.status(400).json({ error: 'Missing "keyword" in the request body' });
+    }
+
     try {
         const trips = searchByTags(keyword);
         res.json(trips);
@@ -50,14 +29,9 @@ app.get('/search', (req, res) => {
         });
     }
 });
-
-const startServer = (server, port) => {
-    server.listen(port, () => {
-        console.log(`JSON Server is running on port ${port}`);
-    });
-};
-
-const server = createServer();
-startServer(server, port);
-
-module.exports = server;
+app.get('/', (req, res) => {
+    res.json(data);
+});
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
