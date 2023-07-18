@@ -1,6 +1,6 @@
 const jsonServer = require('json-server');
 const clone = require('clone');
-const cors = require("cors");
+const cors = require('cors');
 const data = require('./db.json');
 const express = require('express');
 const isProductionEnv = process.env.NODE_ENV === 'production';
@@ -13,7 +13,9 @@ const createServer = () => {
     });
     const middlewares = jsonServer.defaults();
 
+    server.use(cors());
     server.use(middlewares);
+    server.use(express.json()); // Parse JSON request bodies
 
     server.use((req, res, next) => {
         if (req.path !== '/') {
@@ -31,16 +33,20 @@ function searchByTags(keyword) {
     const searchResults = data.filter(trip => trip.tags.includes(keyword));
     return searchResults;
 }
+
 const app = express();
-app.post('/search', (req, res) => {
-    const { keyword } = req.body;
+
+// Search endpoint with GET request and query parameter
+app.get('/search', (req, res) => {
+    const { keyword } = req.query;
+    console.log('Received keyword:', keyword); // Optional: Log the received keyword in the server console
     try {
         const trips = searchByTags(keyword);
-        res.json(trips); // Use json method to send the response
+        res.json(trips);
     } catch (ex) {
         return res.status(500).json({
             responseCode: -1,
-            errMsg: ex.message
+            errMsg: ex.message,
         });
     }
 });
