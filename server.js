@@ -1,14 +1,13 @@
 const jsonServer = require('json-server');
 const clone = require('clone');
-const cors = require('cors');
+const cors = require("cors");
 const data = require('./db.json');
-
+const express = require('express');
 const isProductionEnv = process.env.NODE_ENV === 'production';
 const port = process.env.PORT || 8000;
 
 const createServer = () => {
     const server = jsonServer.create();
-    server.use(cors());
     const router = jsonServer.router(isProductionEnv ? clone(data) : 'db.json', {
         _isFake: isProductionEnv,
     });
@@ -28,21 +27,23 @@ const createServer = () => {
     return server;
 };
 
-server.get('/search', (req, res) => {
-    const tags = req.query.tags;
-
-    if (!tags || !Array.isArray(tags) || tags.length === 0) {
-        res.status(400).json({ error: 'Invalid or empty tags parameter' });
-        return;
+function searchByTags(keyword) {
+    const searchResults = data.filter(trip => trip.tags.includes(keyword));
+    return searchResults;
+}
+const app = express();
+app.post('/search', (req, res) => {
+    const { keyword } = req.body;
+    try {
+        const trips = searchByTags(keyword);
+        res.json(trips); // Use json method to send the response
+    } catch (ex) {
+        return res.status(500).json({
+            responseCode: -1,
+            errMsg: ex.message
+        });
     }
-
-    const filteredData = data.filter(item => {
-        return item.tags.some(tag => tags.includes(tag));
-    });
-
-    res.json(filteredData);
 });
-
 
 const startServer = (server, port) => {
     server.listen(port, () => {
