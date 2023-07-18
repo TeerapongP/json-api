@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const data = require('./db.json'); // Assuming the JSON data is stored in a file called 'db.json'
+const data = require('./Json/db.json'); // Assuming the JSON data is stored in a file called 'db.json'
 
 const app = express();
 const port = process.env.PORT || 8000;
