@@ -25,6 +25,7 @@ The server will be running on port 8000.
 ## API Endpoints
 JSON API (Spring Boot): You can access the JSON API at https://tripsservice.onrender.com.
 Search API (Spring Boot): The search API is available at https://tripsservice.onrender.com/search.
+Sending POST Data
 Pokemon API: You can access the Pokemon API at https://pokeapi.co/api/v2/pokemon?limit=100.
 
 ## Spring Boot
